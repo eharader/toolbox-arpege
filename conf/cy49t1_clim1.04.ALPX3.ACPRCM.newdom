@@ -1,70 +1,79 @@
 #=== New Domain options 
-# See geometry name and levels below 
-# Zonal and meridional resolution in meters  
-DX=1300
-# Longitude center of domain
-LONCEN=4.8 
-# Latitude center of domain
+## See geometry name and levels below 
+## Zonal and meridional resolution in meters  
+DX=2500
+## Longitude center of domain
+LONCEN=4.8
+## Latitude center of domain
 LATCEN=46.2
-# Number of pts C+I zonal  
-NIMAX=1789
-# Number of pts C+I meridian  
-NJMAX=1429
-# Width of I zone  
-NDZON=42
-# Projection
-PROJ=L 
-# Specific epygram environment if desired
-# please provide the activate file 
+## Number of pts C+I zonal  
+NIMAX=889
+## Number of pts C+I meridian  
+NJMAX=709
+## Width of I zone  
+NDZON=21
+## Projection
+PROJ=L
+## Specific epygram environment if desired
+## please provide the activate file 
 EPYV=/scratch/climat/APPS/venvs/epenv_py3.10/bin/activate
-
+# Give halo size 
+HALO=0
 # Specify vertical geometry 
 # Namelist containing only NAMFPG with NFPLEV, FPVALH and FPVALB 
-VERTGEO=/home/gmgec/mrgo/haradercoustaue/AROME49/NFR2.5/toolbox-arpege/namelist/atm/namel_verti_90.reg 
+VERTGEO=/home/gmgec/mrgo/haradercoustaue/AROME49/NFR2.5/toolbox-arpege/namelist/atm/namel_verti_90.reg
 
 
-preNAMARP=/scratch/climat/CEDRE/namelist/atm/ALPX3/nam.atm.ALPX3.cy46t1.ref
-preNAMARPc927=/home/ext/cf/cglo/noirotl/SAVE/ALPX13/namelist/atm/e927_ALPX13_namelist.nam
-preNAMLIN=/home/gmgec/mrgo/haradercoustaue/AROME46/ALPX3_test_epyfix/clim_modif_aude/nameli_clim
-preNAMSFX=/home/ext/cf/cglo/noirotl/SAVE/ALPX13/namelist/sfx/nam.sfx.ALPX13.cy46t1.ref
+preNAMARP=/home/gmgec/mrgo/lenobler/SAVE/ECLIS/38_ALPX3_ref_v7.4.2/nam_atm_cy49_cas.nml
+preNAMARPc927=/home/gmgec/mrgo/haradercoustaue/AROME49/ALPX3/namelist/atm/conf927_ALPX3l60_cy49t1_clim1.04
+preNAMLIN=/home/gmgec/mrgo/haradercoustaue/AROME49/ALPX3/namelist/atm/clim.ALPX3.cy46.lin
+preNAMSFX=/home/gmgec/mrgo/lenobler/SAVE/ECLIS/38_ALPX3_ref_v7.4.2/nam_sfx_cy49.nml
 
-#=== regional LBC options  
+#=== Regional LBC options  
 SRCDIR=/scratch/work/haradercoustaue/DATA/ERA5/clim
 LBCDIR=hendrix:/home/haradercoustaue/DATA/ERA5/restart
 GEOMM=tl399l137R
 LELAM=.FALSE.
 
 #=== Binaries
-pack=/home/mf/dp/marp/gco/SAVE/packs/cy46t1_op1.11.MIMPIIFC1805.2y.pack/bin
+pack=/home/gmgec/mrgo/lenobler/packs/arome_v7.4.IMPIIFC2302DP.y/bin
 EXEPGD=$pack/PGD
 EXEPREP=$pack/PREP
 EXEARP=$pack/MASTERODB
 
 #=== Geometry
-GRID=ALPX13
-GRIDl=ALPX13l90
+GRID=ALPX3
+GRIDl=ALPX3l60
 GRIDdep=tl399r
 
 #=== Dates for surface and atmosphere restarts
-NYEAR=2020
-NMONTH=9
-NDAY=20
-ENDYEAR=2022
-ENDMONTH=2
+NYEAR=2023
+NMONTH=1
+NDAY=1
+ENDYEAR=2024
+ENDMONTH=12
 
 #=== Output directory: define SAVEDIR if wanted. Default : $workdir. Prefix, completed by each different job, e.g. : $SAVEDIR/pgd-prep/$expname
 SAVEDIR=$workdir/arome/tests/${GRID}
 
+#=== Namelists
+NAMARPc927=/home/gmgec/mrgo/haradercoustaue/AROME49/ALPX3/namelist/atm/conf927_ALPX3l60_cy49t1_clim1.04
+NAMLIN=/home/gmgec/mrgo/haradercoustaue/AROME49/ALPX3/namelist/atm/clim.${GRID}.cy49.lin
+NAMQUAD=/home/gmgec/mrgo/haradercoustaue/AROME49/ALPX3/namelist/atm/clim.${GRID}.cy49.quad
+NAMSFX=/home/gmgec/mrgo/haradercoustaue/AROME49/ALPX3/namelist/sfx/nam_sfx_cy49.nml
+NAMSFXpgd=$NAMSFX ; NAMSFXc923=$NAMSFX ; NAMSFXc927=$NAMSFX
+
+
 #=== Restarts
-resdir=/home/gmgec/mrgo/caillaudc/AROME46/test_arome_tuto_arobase/restart/
-FA_PGDFILE=/scratch/climat/CEDRE/data/atm/BCOND/ALPX3CIE/PGD_ALPX3.fa
-FA_INITFILE=/scratch/work/haradercoustaue/RESFXALPX3-0.00-cy46-ref20200920.sfx
+resdir=/scratch/climat/CEDRE/restart/sfx/tl127r/v7
+FA_PGDFILE=$resdir/PGD.AGCM.tl127r.cy49t1_clim1.03.fa
+CLIMDIR=/scratch/work/haradercoustaue/arome/tests/ALPX3/c923/cy49t1_clim1.04.ALPX3.ACPRCM
 
 #=== PGD Input Data
 ECODIR=/scratch/climat/APPS/regional_tools/preprocessing/pgd_data/cy49t1_clim-op1.01
 ECOFILES="/home/gmgec/mrgo/haradercoustaue/AROME46/ALPX3_test_epyfix/clim_modif_aude/ecoclimapI_covers_param.v1_6.01.bin:ecoclimapI_covers_param.bin /home/gmgec/mrgo/haradercoustaue/AROME46/ALPX3_test_epyfix/clim_modif_aude/ecoclimapII_eu_covers_param.v1_6.01.bin:ecoclimapII_eu_covers_param.bin /home/gmgec/mrgo/haradercoustaue/AROME46/ALPX3_test_epyfix/clim_modif_aude/ecoclimapII_af_covers_param.v1_6.01.bin:ecoclimapII_af_covers_param.bin"
-ECOFILES+=" ${ECODIR}/orography.gmted2010_07s5.01.dir:orography.dir ${ECODIR}/orography.gmted2010_07s5.01.hdr:orography.hdr"
-ECOFILES+=" ${ECODIR}/ecoclimap_i.v1_8.02.dir:ecoclimap.dir ${ECODIR}/ecoclimap_i.v1_8.02.hdr:ecoclimap.hdr"
+ECOFILES+=" ${ECODIR}/orography.gmted2010_07s5.01.dir:topo.dir ${ECODIR}/orography.gmted2010_07s5.01.hdr:topo.hdr"
+ECOFILES+=" /home/gmgec/mrgo/haradercoustaue/AROME46/ALPX3_test_epyfix/clim_modif_aude/ecoclimap_i.v1_6.01.dir:ecoclimap.dir /home/gmgec/mrgo/haradercoustaue/AROME46/ALPX3_test_epyfix/clim_modif_aude/ecoclimap_i.v1_6.01.hdr:ecoclimap.hdr"
 ECOFILES+=" ${ECODIR}/lake_depth_eco_i_v1.7.dir:lake_depth.dir ${ECODIR}/lake_depth_eco_i_v1.7.hdr:lake_depth.hdr"
 ECOFILES+=" ${ECODIR}/hwsd.clay_v2.02.dir:clay.dir ${ECODIR}/hwsd.clay_v2.02.hdr:clay.hdr"
 ECOFILES+=" ${ECODIR}/hwsd.sand_v2.02.dir:sand.dir ${ECODIR}/hwsd.sand_v2.02.hdr:sand.hdr"
@@ -99,14 +108,4 @@ EPY_ORO=$FILE_PATH_DBASE/scripts/epy_oro.py
 CNMEXP=FPOS
 SUFF=DEUR
 
-#=== Namelists from New Domain
-NAMARP=/scratch/work/haradercoustaue/arome/tests/ALPX13/domain/cy46t1_op1.11.ALPX13.ACPRCM/NAMARP
-NAMARPc927=/scratch/work/haradercoustaue/arome/tests/ALPX13/domain/cy46t1_op1.11.ALPX13.ACPRCM/NAMARPc927
-NAMLIN=/scratch/work/haradercoustaue/arome/tests/ALPX13/domain/cy46t1_op1.11.ALPX13.ACPRCM/NAMLIN
-NAMQUAD=/scratch/work/haradercoustaue/arome/tests/ALPX13/domain/cy46t1_op1.11.ALPX13.ACPRCM/NAMQUAD
-NAMSFX=/scratch/work/haradercoustaue/arome/tests/ALPX13/domain/cy46t1_op1.11.ALPX13.ACPRCM/NAMSFX
-NAMSFXpgd=/scratch/work/haradercoustaue/arome/tests/ALPX13/domain/cy46t1_op1.11.ALPX13.ACPRCM/NAMSFXpgd
-NAMSFXc927=/scratch/work/haradercoustaue/arome/tests/ALPX13/domain/cy46t1_op1.11.ALPX13.ACPRCM/NAMSFXc927
-NAMSFXc923=/scratch/work/haradercoustaue/arome/tests/ALPX13/domain/cy46t1_op1.11.ALPX13.ACPRCM/NAMSFXc923
-#=== PGD file (filled by job_pgd-prep)
-PGD=/scratch/work/haradercoustaue/arome/tests/ALPX13/pgd-prep/cy46t1_op1.11.ALPX13.ACPRCM.new/PGD.fa
+

@@ -7,7 +7,8 @@ GEOMM=tl399l137R
 LELAM=.FALSE.
 
 #=== Binaries
-pack=/scratch/climat/packs/CY49T1_clim1.04.IMPIIFC2302DP.y/bin
+#pack=/scratch/climat/packs/CY49T1_clim1.04.IMPIIFC2302DP.y/bin
+pack=/home/gmgec/mrgo/lenobler/packs/arome_v7.4.IMPIIFC2302DP.y/bin
 EXEPGD=$pack/PGD
 EXEPREP=$pack/PREP
 EXEARP=$pack/MASTERODB

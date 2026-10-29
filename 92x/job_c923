@@ -143,14 +143,14 @@ sed \
 ${expname}_quad.nam > namprovi_quad
 
 #=== Creating all the namelist files for the different parts
-sed "s/ N923=0/ N923=1/" namprovi > namprovi_1_lin
-sed "s/ N923=0/ N923=1/" namprovi_quad > namprovi_1_quad
-sed "s/ N923=0/ N923=2/" namprovi > namprovi_2
-sed "s/ N923=0/ N923=3/" namprovi > namprovi_3
-sed "s/ N923=0/ N923=4/" namprovi > namprovi_4
-sed "s/ N923=0/ N923=5/" namprovi > namprovi_5
+sed "s/ N923=.*/ N923=1,/" namprovi > namprovi_1_lin
+sed "s/ N923=.*/ N923=1/" namprovi_quad > namprovi_1_quad
+sed "s/ N923=.*/ N923=2/" namprovi > namprovi_2
+sed "s/ N923=.*/ N923=3/" namprovi > namprovi_3
+sed "s/ N923=.*/ N923=4/" namprovi > namprovi_4
+sed "s/ N923=.*/ N923=5/" namprovi > namprovi_5
 sed \
- -e "s/ N923=0/ N923=6/" \
+ -e "s/ N923=.*/ N923=6/" \
  -e "/&NAMCLI/a\   NDATX=$NDATX,\n   NDATY=$NDATY,\n   RSTR=0.," \
 namprovi > namprovi_6
 sed "s/ N923=0/ N923=8/" namprovi > namprovi_8
@@ -166,6 +166,20 @@ rm namprovi namprovi_quad
 #=== Part 1: Quadratic and Linear
 echo "Part 1: Quadratic and Linear"
 cp ${FILE_PATH_DBASE1}/* .
+
+if [ ! -z ${FILE_DBASE1%%:*} ]; then 
+for files in ${FILE_DBASE1} ; do
+  forig=${files%:*} ; ftarg=${files#*:}
+  if [ -f $ftarg ]; then 
+     rm $ftarg
+  fi
+  cp $forig $ftarg
+  if [[ "${forig: -3}" == ".gz" ]] ; then
+    gzip -d $ftarg
+  fi
+done
+fi 
+
 for file in $( ls *.gz ); do
   gzip -d $file
 done
@@ -181,8 +195,8 @@ ln -s $EXEARP arpege.exe
 codrep=$?
 if [ $codrep -ne 0 ]; then echo '>>>>>>>> FAILED : Part 1 - Linear '; exit 1; fi
 
+rm fort.4 Neworog
 mv Const.Clim Neworog
-rm fort.4
 
 ln -s namprovi_1_lin fort.4
 
@@ -359,13 +373,14 @@ if [[ -v LAROME ]] && $LAROME ; then
   $(python $EPY_ORO -c $SAVEDIR/clim_arpege.${GRID}.m01 -p $PGD)
 fi
 
-
-if grep -q "^CLIMDIR=" $CONFIGFILE; then
+if [ -s "$CONFIGFILE" ] ; then
+if grep -E -q "^CLIMDIR=" $CONFIGFILE ; then
   sed -i -e "s|^CLIMDIR=.*|CLIMDIR=$SAVEDIR|" $CONFIGFILE
 else
+  echo "#=== + CLIMDIR (filled by job_c923 ; necessary for standalone atm restart creation by job_c927"
   echo "CLIMDIR=$SAVEDIR">>$CONFIGFILE
 fi
-
+fi 
 
 echo "Clims created and put in $SAVEDIR"
 

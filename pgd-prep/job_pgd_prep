@@ -16,9 +16,10 @@
 #
 #SBATCH -p shared
 #SBATCH --ntasks 1
-#SBATCH --time=02:00:00
+#SBATCH --time=05:00:00
 #SBATCH -J pgd-prep_climat
 #SBATCH -o pgd-prep_climat.o%j
+#SBATCH --mem=200Gb
 #
 set -x
 #
@@ -40,6 +41,7 @@ done
 # Default experiment name, overwritten if passed by argument  
 expname=cy49t1_clim1.03_tl127r
 if [ -s "$CONFIGFILE" ] ; then
+  CONFIGFILE=$( realpath $CONFIGFILE )
   source $CONFIGFILE
   expname=$(basename $CONFIGFILE)
 fi
@@ -187,12 +189,21 @@ if [[ $LPGD -ne 0 ]] ; then
    if [ ! -d ${PGD%%PGD.fa} ]; then 
       mkdir -p ${PGD%%PGD.fa}
    fi 
-   mv PGD.fa $PGD 
+   mv PGD.fa $PGD
 
-  if [[ $DR_HOOK -ne 0 ]] ; then
+   if [ -s "$CONFIGFILE" ] ; then
+   if grep -E -q "^PGD=" $CONFIGFILE; then
+     sed -i -e "s|^PGD=.*|PGD=$PGD|" $CONFIGFILE
+   else
+     echo "#=== PGD file (filled by job_pgd-prep)">>$CONFIGFILE
+     echo "PGD=$PGD">>$CONFIGFILE
+   fi
+   fi
+
+   if [[ $DR_HOOK -ne 0 ]] ; then
      mv drhook.prof.1 $SAVEDIR/drhook.prof_pgd
      mv LISTING_PGD.txt $SAVEDIR/LISTING_PGD.txt
-  fi
+   fi
 
 fi
 
@@ -202,6 +213,12 @@ fi
 #=========================================================================
 
 echo " !!!!!!!!!! PREP CASE !!!!!!!! "
+
+
+[ -s OPTIONS.nam ] && rm -f OPTIONS.nam 
+#=== Copying Namelist
+echo " copie de la namelist surfex"
+cp $NAMSFX OPTIONS.nam
 
 #=== TRIP option
 if [[ $LTRIP -ne 0 ]] ; then
@@ -216,13 +233,7 @@ fi
 #=== Copying restart and PGD
 ln -s $FA_PGDFILE restart_sfx_pgd.fa
 ln -s $FA_INITFILE restart_sfx.fa
-
 ln -s $PGD PGD.fa
-
-#=== Copying ts clim 
-# Arrival climatologies:
-
-cp ${CLIMDIR}/clim_arpege.${GRID}.$(printf "%02.0f" $NMONTH) const.clim
 
 echo " copie et execution du prep "
 ln -s $EXEPREP prep.exe
@@ -245,6 +256,15 @@ if [ ! -d ${PREP%%PREP.fa} ]; then
 fi
 
 mv PREP.fa  $PREP
+
+if [ -s "$CONFIGFILE" ] ; then
+if grep -E -q "^PREP=" $CONFIGFILE; then
+  sed -i -e "s|^PREP=.*|PREP=$PREP|" $CONFIGFILE
+else
+  echo "#=== PREP file (filled by job_pgd-prep)">>$CONFIGFILE
+  echo "PREP=$PREP">>$CONFIGFILE
+fi
+fi
 
 if [[ $LTRIP -ne 0 ]] ; then
    mv TRIP_PREP.nc $SAVEDIR/.

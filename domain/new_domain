@@ -1,10 +1,14 @@
 #!/bin/bash
 
-# Script for generation of geometry files for ARO and ALD based on ARPEGE-Climat v7.
+# Script for generation of new domains for ARO and ALD based on ARPEGE-Climat v7.
 # Execution of domain maker and generation of appropriate namelists. Defaults to 
-# AROME NFR2.5 domain  
+# AROME NFR2.5 domain.  
+# 
+# Provides new namelists for the atmosphere and surfex based on example namelists 
+# passed in configfile variables : preNAMARPc927, preNAMLIN, preNAMSFX. 
+#
 # <script-name> -c <config-file> (required)
-# 09/2026 :
+# 09/2026 : Creation of script 
 
 
 module purge 
@@ -62,25 +66,11 @@ NDZON=${NDZON:-8}
 # Single letter abbreviated projection : 'L':'lambert', 'M':'mercator', 'PS':'polar_stereographic'
 PROJ=${PROJ:-L}
 
-#== Get dates
-# This is the regional script for making multiple LBCs (not a single initial condition)
-# thus there is no NDAY option 
-NYEAR=${NYEAR:-2016}
-NMONTH=${NMONTH:-10}
-ENDYEAR=${ENDYEAR:-2016}
-ENDMONTH=${ENDMONTH:-11}
+#=== Vertical geometry 
+VERTGEO=${VERTGEO:$TOOLBOX_DIR/namelist/atm/namel_verti_90.reg}
 
-#=== Geometry and version
-GRID=${GRID:-tl127}
-# !! Verti levels need to be included later  
-GRIDl=${GRIDl:-tl127l91r}
-
-#=== Namelists
-# this is going to be kind of annoying to modif all the things 
-# do I add a marker to these files to show that they are temporary ? 
-NAMSFX=${NAMSFXc927:-${TOOLBOX_DIR}/namelist/sfx/nam.sfx.${GRID}r.c927.cy49t1_clim1.03}
-NAMARP=${NAMARPc927:-${TOOLBOX_DIR}/namelist/atm/nam.atm.${GRIDl}.c927.cy49t1_clim1.03}
-
+#=== Halos if using an input surfout that is too small 
+HALO=${HALO:-0}
 
 #=== Output directory
 SAVEDIR=${SAVEDIR:-$workdir} ; SAVEDIR=$SAVEDIR/domain/$expname
@@ -97,8 +87,8 @@ if [ ! -r $SAVEDIR ]; then
 fi 
 
 cd $SAVEDIR
-rm domain_maker.out.png namel_c923.geoblocks namel_e927.geoblocks namel_buildpgd.geoblocks namel_c923_orography.geoblocks new_domain.namelists_blocks ||:
-
+rm domain_maker.out.png namel_c923.geoblocks namel_e927.geoblocks namel_buildpgd.geoblocks namel_c923_orography.geoblocks new_domain.namelists_blocks namel_arp.geoblocks namel_e927.geoblocks.new namel_verti ||:
+rm newCONFIGFILE NAMSFX NAMSFXpgd NAMSFXc923 NAMSFXc927 NAMARPc927 NAMLIN NAMQUAD NAMARP |:
 
 python<<eorr
 import epygram
@@ -115,3 +105,143 @@ print(summary(geometry))
 write_geometry_as_namelists(geometry,allinone=True,truncation='linear', orography_subtruncation='quadratic')
 eorr
 
+cp $TOOLBOX_DIR/tools/xpnam xpnam 
+
+echo "epy_domain_maker does not provide vertical geometry"
+echo "Adding vertical geometry from file. This defaults to 90 levels from global."
+cp $VERTGEO namel_verti
+xpnam -i --dfile=namel_verti namel_e927.geoblocks
+
+xpnam --rmblock=NAMCT0 --empty=NAMDIM --delta='&NAMDIM NPROMA=-16,/' namel_c923.geoblocks 
+xpnam --rmblock=NAMFPG namel_e927.geoblocks
+xpnam -i --dfile=namel_e927.geoblocks.new namel_c923.geoblocks.new 
+
+mv namel_c923.geoblocks.new namel_arp.geoblocks
+
+if [ ! -z $preNAMARP ] && [ -s $preNAMARP ]; then 
+   cp $preNAMARP NAMARP
+   xpnam -i --rmblock=NAMDIM,NAMFPD,NEMDIM,NEMGEO NAMARP
+   xpnam -i --dfile=namel_arp.geoblocks NAMARP 
+else
+   echo "No preNAMARP provided"
+   echo "Cannot produce NAMARP:atmospheric namelist for LBCs and CI." 
+   echo "New namelists and newCONFIGFILE not created."
+   exit 0
+fi
+
+
+if [ ! -z $preNAMARPc927 ] && [ -s $preNAMARPc927 ]; then 
+   cp $preNAMARPc927 NAMARPc927
+   xpnam -i --rmblock=NAMFPD,NAMFPG NAMARPc927
+   xpnam -i --dfile=namel_e927.geoblocks NAMARPc927 
+else
+   echo "No preNAMARPc927 provided"
+   echo "Cannot produce NAMARPc927:atmospheric namelist for LBCs and CI." 
+   echo "New namelists and newCONFIGFILE not created."
+   exit 0
+fi
+
+if [ ! -z $preNAMLIN ] && [ -s $preNAMLIN ]; then 
+   cp $preNAMLIN NAMLIN
+   xpnam -i --rmblock=NAMCT0,NAMDIM,NEMDIM,NEMGEO  NAMLIN
+   xpnam -i --dfile="namel_c923.geoblocks" NAMLIN
+   xpnam --remove=NMSMAX,NSMAX,LNEWORO,LIPGD/NLISSP NAMLIN
+   mv NAMLIN.new NAMQUAD
+   xpnam -i --dfile="namel_c923_orography.geoblocks" NAMQUAD
+   xpnam -i --delta='&NAMCLA LNEWORO=.TRUE.,' NAMQUAD
+   xpnam -i --delta='&NAMCLA LIPGD=.TRUE.,' NAMQUAD
+   xpnam -i --delta='&NAMCLA NLISSP=0.,' NAMQUAD  
+else
+   echo "No preNAMLIN provided"
+   echo "Cannot produce NAMLIN and NAMQUAD: c923 atmospheric namelist (LIN) and c923 atmospheric namelist for orog (QUAD)."
+   echo "New namelists and newCONFIGFILE not created."
+   exit 0
+fi
+
+
+cat>namel_addon<<EOR
+&NAM_CONF_PROJ_GRID
+   IWIDTH_I_X=$NDZON,
+   IWIDTH_I_Y=$NDZON,
+   ILATE=11,
+   ILONE=11,
+ /
+&NAM_IO_OFFLINE
+   NHALO=$HALO,
+/
+&NAM_PREP_SURF_ATM
+   NHALO_PREP=$HALO,
+/
+EOR
+
+if [ ! -z $preNAMSFX ] && [ -s $preNAMSFX ]; then 
+   cp $preNAMSFX NAMSFX
+   xpnam -i --rmblock=NAM_CONF_PROJ,NAM_CONF_PROJ_GRID NAMSFX
+   xpnam -i --dfile=namel_buildpgd.geoblocks NAMSFX
+   sed -i -e "s/[ ]*=[ ]*/=/" NAMSFX #Remove whitespaces around "=" that bug xpnam
+   xpnam -i --remove=NHALO,NHALO_PREP NAMSFX
+   xpnam -i --dfile=namel_addon NAMSFX
+else
+   echo "No preNAMSFX provided"
+   echo "Cannot produce NAMSFX: general SURFEX namelist."
+   echo "New namelists and newCONFIGFILE not created."
+   exit 0
+fi
+
+if [ ! -z $preNAMSFXpgd ] && [ -s $preNAMSFXpgd ]; then 
+   cp $preNAMSFXpgd NAMSFXpgd
+   xpnam -i --rmblock=NAM_CONF_PROJ,NAM_CONF_PROJ_GRID NAMSFXpgd
+   xpnam -i --dfile=namel_buildpgd.geoblocks NAMSFXpgd
+   sed -i -e "s/[ ]*=[ ]*/=/" NAMSFXpgd #Remove whitespaces around "=" that bug xpnam
+   xpnam -i --remove=NHALO,NHALO_PREP NAMSFXpgd
+   xpnam -i --dfile=namel_addon NAMSFXpgd
+else
+   echo "No preNAMSFXpgd provided, linking to NAMSFX"
+   cp NAMSFX NAMSFXpgd
+fi
+
+if [ ! -z $preNAMSFXc923 ] && [ -s $preNAMSFXc923 ]; then 
+   cp $preNAMSFXc923 NAMSFXc923
+   xpnam -i --rmblock=NAM_CONF_PROJ,NAM_CONF_PROJ_GRID NAMSFXc923
+   xpnam -i --dfile=namel_buildpgd.geoblocks NAMSFXc923
+   sed -i -e "s/[ ]*=[ ]*/=/" NAMSFXc923 #Remove whitespaces around "=" that bug xpnam
+   xpnam -i --remove=NHALO,NHALO_PREP NAMSFXc923 
+   xpnam -i --dfile=namel_addon NAMSFXc923
+else
+   echo "No preNAMSFXc923 provided, linking to NAMSFX"
+   cp NAMSFX NAMSFXc923
+fi
+
+if [ ! -z $preNAMSFXc927 ] && [ -s $preNAMSFXc927 ]; then 
+   cp $preNAMSFXc927 NAMSFXc927
+   xpnam -i --rmblock=NAM_CONF_PROJ,NAM_CONF_PROJ_GRID NAMSFXc927
+   xpnam -i --dfile=namel_buildpgd.geoblocks NAMSFXc927
+   sed -i -e "s/[ ]*=[ ]*/=/" NAMSFXc927 #Remove whitespaces around "=" that bug xpnam
+   xpnam -i --remove=NHALO,NHALO_PREP NAMSFXc927 
+   xpnam -i --dfile=namel_addon NAMSFXc927
+else
+   echo "No preNAMSFXc927 provided, linking to NAMSFX"
+   cp NAMSFX NAMSFXc927
+fi
+
+#=== Create new CONFIGFILE with links for links for newly created namelists
+# This will remove preexisting namelists (any variable starting with NAM)
+# it will leave the "pre" namelists used to construct namlists for the new 
+# geometry 
+cp $CONFIGFILE newCONFIGFILE
+sed -i -e "/^NAM/d" newCONFIGFILE
+echo "#=== Namelists from New Domain" >> newCONFIGFILE
+echo "NAMARP="$SAVEDIR"/NAMARP">>newCONFIGFILE
+echo "NAMARPc927="$SAVEDIR"/NAMARPc927">>newCONFIGFILE
+echo "NAMLIN="$SAVEDIR"/NAMLIN">>newCONFIGFILE   
+echo "NAMQUAD="$SAVEDIR"/NAMQUAD">>newCONFIGFILE
+echo "NAMSFX="$SAVEDIR"/NAMSFX">>newCONFIGFILE
+echo "NAMSFXpgd="$SAVEDIR"/NAMSFXpgd">>newCONFIGFILE
+echo "NAMSFXc927="$SAVEDIR"/NAMSFXc927">>newCONFIGFILE
+echo "NAMSFXc923="$SAVEDIR"/NAMSFXc923">>newCONFIGFILE
+
+# === WORK IN PROGRESS ===
+# Creates the ${GEOM}C.grid, ${GEOM}CI.grid and ${GEOM}CIE.grid files 
+# 
+#cp $TOOLBOX_DIR/tools/prep_lonlat_LAM.sh . 
+#./prep_lonlat_LAM.sh $GRID $SAVEDIR

@@ -25,8 +25,8 @@ VERTGEO=/home/gmgec/mrgo/haradercoustaue/AROME49/NFR2.5/toolbox-arpege/namelist/
 
 preNAMARP=/scratch/climat/CEDRE/namelist/atm/ALPX3/nam.atm.ALPX3.cy46t1.ref
 preNAMARPc927=/home/ext/cf/cglo/noirotl/SAVE/ALPX13/namelist/atm/e927_ALPX13_namelist.nam
-preNAMLIN=/home/gmgec/mrgo/haradercoustaue/AROME46/ALPX3_test_epyfix/clim_modif_aude/nameli_clim
-preNAMSFX=/home/ext/cf/cglo/noirotl/SAVE/ALPX13/namelist/sfx/nam.sfx.ALPX13.cy46t1.ref
+preNAMLIN=/home/gmgec/mrgo/haradercoustaue/AROME49/ALPX3/namelist/atm/clim.ALPX3.cy46.lin
+preNAMSFX=/home/gmgec/mrgo/haradercoustaue/AROME49/ALPX3/namelist/sfx/nam_sfx_cy46.nml.lili
 
 #=== regional LBC options  
 SRCDIR=/scratch/work/haradercoustaue/DATA/ERA5/clim
@@ -63,7 +63,7 @@ FA_INITFILE=$resdir/RESFXALPX3-0.00-cy46-ref20200920.sfx
 #=== PGD Input Data
 ECODIR=/scratch/climat/APPS/regional_tools/preprocessing/pgd_data/cy49t1_clim-op1.01
 ECOFILES="/home/gmgec/mrgo/haradercoustaue/AROME46/ALPX3_test_epyfix/clim_modif_aude/ecoclimapI_covers_param.v1_6.01.bin:ecoclimapI_covers_param.bin /home/gmgec/mrgo/haradercoustaue/AROME46/ALPX3_test_epyfix/clim_modif_aude/ecoclimapII_eu_covers_param.v1_6.01.bin:ecoclimapII_eu_covers_param.bin /home/gmgec/mrgo/haradercoustaue/AROME46/ALPX3_test_epyfix/clim_modif_aude/ecoclimapII_af_covers_param.v1_6.01.bin:ecoclimapII_af_covers_param.bin"
-ECOFILES+=" ${ECODIR}/orography.gmted2010_07s5.01.dir:orography.dir ${ECODIR}/orography.gmted2010_07s5.01.hdr:orography.hdr"
+ECOFILES+=" ${ECODIR}/orography.gmted2010_07s5.01.dir:topo.dir ${ECODIR}/orography.gmted2010_07s5.01.hdr:topo.hdr"
 ECOFILES+=" ${ECODIR}/ecoclimap_i.v1_8.02.dir:ecoclimap.dir ${ECODIR}/ecoclimap_i.v1_8.02.hdr:ecoclimap.hdr"
 ECOFILES+=" ${ECODIR}/lake_depth_eco_i_v1.7.dir:lake_depth.dir ${ECODIR}/lake_depth_eco_i_v1.7.hdr:lake_depth.hdr"
 ECOFILES+=" ${ECODIR}/hwsd.clay_v2.02.dir:clay.dir ${ECODIR}/hwsd.clay_v2.02.hdr:clay.hdr"
@@ -82,6 +82,7 @@ FILE_PATH_DBASE9=${FILE_PATH_DBASE}/tegen.aerosols.01.ascii
 
 #=== Files for each case different from ARPEGE/ALADIN
 # Constant files:
+FILE_DBASE1="${FILE_PATH_DBASE1}/water_percentage.gtopo30.01.bin:Water_Percentage ${FILE_PATH_DBASE1}/urbanisation.gtopo30.01.bin:Urbanisation"
 FILE_DBASE3="${FILE_PATH_DBASE3}/usnavy.soil_clim.01.bin:N108_GL"
 FILE_DBASE6_geopot="${FILE_PATH_DBASE6}/arp_reanalysis.surfgeopotential.01.bin:rel_GL"
 # Monthly files: /!\ replace the month number by MM in your original filename !
@@ -91,6 +92,7 @@ FILE_DBASE6_soil="${FILE_PATH_DBASE6}/arp_reanalysis.soil_clim.01.tgz.mMM:arp_re
 FILE_DBASE8="${FILE_PATH_DBASE8}/ugamp.ozone.01.ascii.mMM:abc_coef"
 FILE_DBASE9="${FILE_PATH_DBASE9}/tegen.aerosols.01.ascii.mMM:aero_GL"
 
+
 #=== Handling of spectral orography for AROME
 LAROME=true
 EPY_ORO=$FILE_PATH_DBASE/scripts/epy_oro.py
@@ -99,3 +101,16 @@ EPY_ORO=$FILE_PATH_DBASE/scripts/epy_oro.py
 CNMEXP=FPOS
 SUFF=DEUR
 
+#=== Namelists from New Domain
+NAMARP=/scratch/work/haradercoustaue/arome/tests/ALPX13/domain/cy46t1_op1.11.ALPX13.ACPRCM/NAMARP
+NAMARPc927=/scratch/work/haradercoustaue/arome/tests/ALPX13/domain/cy46t1_op1.11.ALPX13.ACPRCM/NAMARPc927
+NAMLIN=/scratch/work/haradercoustaue/arome/tests/ALPX13/domain/cy46t1_op1.11.ALPX13.ACPRCM/NAMLIN
+NAMQUAD=/scratch/work/haradercoustaue/arome/tests/ALPX13/domain/cy46t1_op1.11.ALPX13.ACPRCM/NAMQUAD
+NAMSFX=/scratch/work/haradercoustaue/arome/tests/ALPX13/domain/cy46t1_op1.11.ALPX13.ACPRCM/NAMSFX
+NAMSFXpgd=/scratch/work/haradercoustaue/arome/tests/ALPX13/domain/cy46t1_op1.11.ALPX13.ACPRCM/NAMSFXpgd
+NAMSFXc927=/scratch/work/haradercoustaue/arome/tests/ALPX13/domain/cy46t1_op1.11.ALPX13.ACPRCM/NAMSFXc927
+NAMSFXc923=/scratch/work/haradercoustaue/arome/tests/ALPX13/domain/cy46t1_op1.11.ALPX13.ACPRCM/NAMSFXc923
+#=== PGD file (filled by job_pgd-prep)
+PGD=/scratch/work/haradercoustaue/arome/tests/ALPX13/pgd-prep/cy46t1_op1.11.ALPX13.ACPRCM.new/PGD.fa
+#=== PREP file (filled by job_pgd-prep)
+PREP=/scratch/work/haradercoustaue/arome/tests/ALPX13/pgd-prep/cy46t1_op1.11.ALPX13.ACPRCM.new/PREP.fa
